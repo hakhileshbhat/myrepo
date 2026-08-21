@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GatiSetu UrbanGrid | Smart City Infrastructure & Multi-Fleet Logistics</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Leaflet.js for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        saffron: '#f97316',
+                        indiaGreen: '#16a34a',
+                        dangerRed: '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        #map {
+            height: 520px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="bg-gradient-to-tr from-brand-700 to-brand-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                        <i data-lucide="network" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-tight text-slate-900">Gati<span
+                                class="text-saffron">Setu</span> <span
+                                class="text-xs bg-slate-900 text-white px-2 py-0.5 rounded font-mono">InfraGrid</span></span>
+                        <span class="block text-[10px] uppercase font-bold text-indiaGreen tracking-wider">PM GatiShakti
+                            • Urban Infrastructure & Fleet Optimization</span>
+                    </div>
+                </div>
+
+                <nav class="hidden lg:flex space-x-6 font-semibold text-slate-600 text-xs uppercase tracking-wide">
+                    <a href="#infra-controls" class="hover:text-brand-600 transition flex items-center gap-1"><i
+                            data-lucide="shield-check" class="w-4 h-4"></i> City Infra Tools</a>
+                    <a href="#gps-tracking" class="hover:text-brand-600 transition flex items-center gap-1"><i
+                            data-lucide="map-pin" class="w-4 h-4"></i> Live Fleet Radar</a>
+                    <a href="#register-vehicle" class="hover:text-brand-600 transition flex items-center gap-1"><i
+                            data-lucide="plus-circle" class="w-4 h-4"></i> Add Truck & City</a>
+                    <a href="#rate-estimator" class="hover:text-brand-600 transition flex items-center gap-1"><i
+                            data-lucide="indian-rupee" class="w-4 h-4"></i> Freight & Carbon Calc</a>
+                </nav>
+
+                <div class="hidden sm:flex items-center space-x-2">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-indiaGreen animate-ping"></span> ULIP & NIC Live
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= HERO & E-WAY SEARCH ================= -->
+    <section class="relative bg-slate-900 text-white py-12 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/80 z-10"></div>
+        <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+                <div class="lg:col-span-7 space-y-4">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-brand-300 text-xs font-semibold">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-saffron"></i> Smart City Resource, Transit &
+                        Flood Mitigation Stack
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+                        Multi-Agency Fleet Grid & <br><span class="text-saffron">Urban Resource Management</span>
+                    </h1>
+                    <p class="text-sm text-slate-300 max-w-xl leading-relaxed">
+                        Coordinating multi-modal freight transport with municipal infrastructure to resolve arterial
+                        road gridlocks, reduce port gate dwell time, and bypass monsoon flood corridors.
+                    </p>
+
+                    <!-- Quick E-Way / Plate Search -->
+                    <div class="pt-2 max-w-xl">
+                        <div class="bg-white p-2 rounded-2xl shadow-2xl flex flex-col sm:flex-row gap-2">
+                            <div class="flex items-center flex-1 px-3 text-slate-700">
+                                <i data-lucide="search" class="w-5 h-5 text-brand-600 mr-2"></i>
+                                <input type="text" id="trackingIdInput"
+                                    placeholder="Enter Plate or E-Way ID (e.g. KA-19-AB-2041)"
+                                    class="w-full bg-transparent focus:outline-none text-slate-800 placeholder-slate-400 font-semibold text-sm uppercase">
+                            </div>
+                            <button onclick="handleIndianTracking()"
+                                class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-3 rounded-xl transition duration-150 flex items-center justify-center gap-2 text-sm">
+                                <span>Check Vehicle</span>
+                            </button>
+                        </div>
+                        <div id="trackingResult"
+                            class="mt-4 hidden p-4 rounded-2xl bg-slate-800 border border-slate-700 shadow-xl"></div>
+                    </div>
+                </div>
+
+                <!-- Infrastructure Stress Metrics -->
+                <div class="lg:col-span-5 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center text-slate-400 text-xs font-bold">
+                            <span>CITY ROAD STRESS</span>
+                            <i data-lucide="activity" class="w-4 h-4 text-saffron"></i>
+                        </div>
+                        <p class="text-2xl font-black text-white mt-1">68% Load</p>
+                        <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div class="bg-saffron h-full" style="width: 68%"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Green bypasses active</span>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center text-slate-400 text-xs font-bold">
+                            <span>AIR QUALITY (AQI)</span>
+                            <i data-lucide="wind" class="w-4 h-4 text-emerald-400"></i>
+                        </div>
+                        <p class="text-2xl font-black text-emerald-400 mt-1">94 AQI</p>
+                        <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div class="bg-emerald-400 h-full" style="width: 35%"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Low idle pollution</span>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center text-slate-400 text-xs font-bold">
+                            <span>ACTIVE FLEET</span>
+                            <i data-lucide="truck" class="w-4 h-4 text-sky-400"></i>
+                        </div>
+                        <p class="text-2xl font-black text-sky-400 mt-1" id="statFleetCount">10</p>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Connected GPS units</span>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl">
+                        <div class="flex justify-between items-center text-slate-400 text-xs font-bold">
+                            <span>CONNECTED HUBS</span>
+                            <i data-lucide="map-pin" class="w-4 h-4 text-amber-400"></i>
+                        </div>
+                        <p class="text-2xl font-black text-amber-400 mt-1" id="statCityCount">6</p>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Ports, ICDs & Terminals</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= CITY INFRASTRUCTURE IMPROVEMENT TOOLKIT ================= -->
+    <section id="infra-controls" class="py-8 bg-slate-100 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-brand-600 font-bold uppercase tracking-wider text-xs">Infrastructure
+                        Interventions</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">City Resource & Congestion Relievers
+                    </h2>
+                </div>
+                <!-- Smart City Toggles -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="toggleInfrastructure('flood')" id="btnFlood"
+                        class="bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-300 shadow-sm">
+                        <i data-lucide="cloud-rain" class="w-3.5 h-3.5 text-blue-500"></i> Flood Risk Reroute
+                    </button>
+                    <button onclick="toggleInfrastructure('weighbridge')" id="btnWeigh"
+                        class="bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-300 shadow-sm">
+                        <i data-lucide="scale" class="w-3.5 h-3.5 text-amber-500"></i> Axle-Overload Checkposts
+                    </button>
+                    <button onclick="toggleInfrastructure('ev')" id="btnEV"
+                        class="bg-white hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-300 shadow-sm">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-500"></i> EV Freight Corridor Hubs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= LIVE GPS FLEET MAP & COMPANY FILTER ================= -->
+    <section id="gps-tracking" class="py-10 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Filter Bar: City & Transport Company -->
+            <div
+                class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+
+                    <!-- Select City -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase">Focus City:</label>
+                        <select id="filterCity" onchange="applyFilters()"
+                            class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-600">
+                            <option value="ALL">All Hubs (Pan-India)</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Select Transport Company -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-600 uppercase">Logistics Operator:</label>
+                        <select id="filterCompany" onchange="applyFilters()"
+                            class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-600">
+                            <option value="ALL">All Transport Companies</option>
+                            <option value="VRL Logistics">VRL Logistics</option>
+                            <option value="TCI Express">TCI Express</option>
+                            <option value="Blue Dart Express">Blue Dart Express</option>
+                            <option value="Rivigo Freight">Rivigo Freight</option>
+                            <option value="Delhivery Freight">Delhivery Freight</option>
+                            <option value="CONCOR India">CONCOR India (Intermodal)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button onclick="refreshTrucks()"
+                        class="bg-brand-600 hover:bg-brand-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Simulate Live Telematics
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Interactive Leaflet Map -->
+                <div class="lg:col-span-8 bg-slate-100 p-2 rounded-2xl border border-slate-300 shadow-inner">
+                    <div id="map"></div>
+                </div>
+
+                <!-- Live Vehicles List -->
+                <div class="lg:col-span-4 space-y-3 overflow-y-auto max-h-[520px] pr-1" id="vehicleList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= REGISTER VEHICLE & ADD CUSTOM CITY ================= -->
+    <section id="register-vehicle" class="py-14 bg-slate-100 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <span class="text-brand-600 font-bold uppercase tracking-wider text-xs">Fleet & Hub Registry</span>
+                <h2 class="text-3xl font-extrabold text-slate-900 mt-1">Register Trucks & Expand City Infrastructure
+                </h2>
+                <p class="text-slate-500 text-sm mt-1">Type custom Indian vehicle number plates, assign operators, and
+                    map new logistics hubs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Form 1: Type Number Plate & Register Truck -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-2.5 bg-brand-50 text-brand-600 rounded-xl">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Add Vehicle Plate & Telematics</h3>
+                            <p class="text-xs text-slate-500">Link custom number plate to logistics operator</p>
+                        </div>
+                    </div>
+
+                    <form onsubmit="handleRegisterVehicle(event)" class="space-y-4">
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Vehicle
+                                Number Plate (Type Manually)</label>
+                            <input type="text" id="regPlateNumber" placeholder="e.g. KA-19-ME-4491 or MH-12-RN-9002"
+                                required
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-bold uppercase tracking-wider">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Transport
+                                    Company</label>
+                                <select id="regCompany"
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                    <option value="VRL Logistics">VRL Logistics</option>
+                                    <option value="TCI Express">TCI Express</option>
+                                    <option value="Blue Dart Express">Blue Dart Express</option>
+                                    <option value="Rivigo Freight">Rivigo Freight</option>
+                                    <option value="Delhivery Freight">Delhivery Freight</option>
+                                    <option value="CONCOR India">CONCOR India</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Truck
+                                    Model / Type</label>
+                                <input type="text" id="regTruckModel" placeholder="e.g. Tata Signa 4825" required
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Driver
+                                    Name</label>
+                                <input type="text" id="regDriverName" placeholder="e.g. Anand Rao" required
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Assigned
+                                    City Hub</label>
+                                <select id="regAssignedCity"
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                    <!-- Dynamic Options -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Operational
+                                Status</label>
+                            <select id="regVehicleStatus"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                <option value="In Transit">In Transit (Corridor Active)</option>
+                                <option value="Available">Available at Yard</option>
+                                <option value="Loading">Loading at Hub Dock</option>
+                            </select>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 rounded-xl transition duration-150 shadow-md flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Truck to Radar Map
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Form 2: Add New City Hub / Terminal -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-2.5 bg-emerald-50 text-indiaGreen rounded-xl">
+                            <i data-lucide="map-pinned" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Add City / Port Terminal Node</h3>
+                            <p class="text-xs text-slate-500">Insert custom coordinates to expand the grid</p>
+                        </div>
+                    </div>
+
+                    <form onsubmit="handleAddCity(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">City
+                                Name</label>
+                            <input type="text" id="cityNameInput" placeholder="e.g. Hyderabad, Surat, Kochi" required
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indiaGreen text-sm font-semibold">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Latitude</label>
+                                <input type="number" step="0.0001" id="cityLatInput" placeholder="e.g. 17.3850" required
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indiaGreen text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Longitude</label>
+                                <input type="number" step="0.0001" id="cityLngInput" placeholder="e.g. 78.4867" required
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indiaGreen text-sm font-semibold">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Terminal
+                                / Industrial Cluster Description</label>
+                            <input type="text" id="cityHubDesc" placeholder="e.g. Multi-Modal Logistics Hub & Dry Port"
+                                required
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indiaGreen text-sm font-semibold">
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-indiaGreen hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition duration-150 shadow-md flex items-center justify-center gap-2 text-sm mt-8">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i> Add City to Network
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= FREIGHT & CARBON CALCULATOR ================= -->
+    <section id="rate-estimator" class="py-14 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-slate-50 rounded-3xl shadow-lg p-8 sm:p-10 border border-slate-200">
+
+                <div class="text-center mb-8">
+                    <div
+                        class="inline-flex items-center justify-center p-3 bg-brand-50 text-brand-600 rounded-2xl mb-3">
+                        <i data-lucide="calculator" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">National Corridor Freight & Carbon
+                        Estimator</h2>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-1">Calculates base haulage, GST (5% GTA), FASTag
+                        tolls, and estimated carbon offset.</p>
+                </div>
+
+                <form id="freightCalculator" onsubmit="calculateIndianFreight(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Corridor
+                                Route</label>
+                            <select id="routeSelect" onchange="autoFillDistance()"
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                <option value="1420" data-tolls="1850">Delhi ➔ Mumbai (NH-48) - 1,420 km</option>
+                                <option value="2050" data-tolls="2400">Bengaluru ➔ Delhi (NH-44) - 2,050 km</option>
+                                <option value="350" data-tolls="450">Mangaluru ➔ Bengaluru (NH-75) - 350 km</option>
+                                <option value="1680" data-tolls="2100">Kolkata ➔ Chennai (NH-16) - 1,680 km</option>
+                                <option value="custom" data-tolls="0">Custom Route</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Distance
+                                (Kilometers)</label>
+                            <input type="number" id="customDistance" value="1420" min="1" required
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Payload
+                                Weight (Tons)</label>
+                            <input type="number" id="tonnage" value="14" min="0.5" step="0.5" required
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Vehicle
+                                Type</label>
+                            <select id="truckType"
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                <option value="14">Tata 16-Wheeler Multi-Axle (₹14/ton-km)</option>
+                                <option value="18">Ashok Leyland 40ft Container (₹18/ton-km)</option>
+                                <option value="24">Reefer / Cold Chain (₹24/ton-km)</option>
+                                <option value="9">Eicher 14ft Open Body (₹9/ton-km)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">GST
+                                Slab</label>
+                            <select id="gstRate"
+                                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-600 text-sm font-semibold">
+                                <option value="0.05">5% (GTA RCM)</option>
+                                <option value="0.12">12% (Forward Charge with ITC)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-brand-600 hover:bg-brand-700 text-white font-black py-4 rounded-xl transition duration-150 shadow-lg flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Generate Cost & Environmental Breakdown
+                    </button>
+                </form>
+
+                <div id="costManifest"
+                    class="hidden mt-8 p-6 bg-slate-900 text-white rounded-2xl border border-slate-800">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+                        <span class="text-xs uppercase font-bold text-saffron tracking-wider">Freight & Environmental
+                            Assessment</span>
+                        <span class="text-xs text-slate-400 font-mono" id="quotationNo">QRN-SIH-991</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-300">
+                        <div class="space-y-2">
+                            <div class="flex justify-between"><span>Base Linehaul Freight:</span> <span
+                                    class="font-bold text-white" id="baseFreight">₹ 0</span></div>
+                            <div class="flex justify-between"><span>Estimated FASTag Tolls:</span> <span
+                                    class="font-bold text-white" id="fastagToll">₹ 0</span></div>
+                            <div class="flex justify-between"><span>GST Component:</span> <span
+                                    class="font-bold text-white" id="gstAmount">₹ 0</span></div>
+                        </div>
+                        <div class="space-y-2 bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                            <div class="flex justify-between text-xs text-emerald-400"><span>Estimated Carbon
+                                    Footprint:</span> <span class="font-bold font-mono" id="carbonEmission">0 kg
+                                    CO2</span></div>
+                            <div class="flex justify-between text-xs text-sky-400"><span>Optimized Route Fuel
+                                    Saved:</span> <span class="font-bold font-mono" id="fuelSaved">0 Liters</span></div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-700 pt-3 mt-4 flex justify-between items-center">
+                        <span class="text-base font-extrabold text-white">Net Total Cost:</span>
+                        <span class="text-2xl font-black text-indiaGreen" id="netTotal">₹ 0</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= JAVASCRIPT: DATA & LOGIC ================= -->
+    <script>
+        lucide.createIcons();
+
+        // 1. Expanded City Hubs
+        let cityDatabase = [
+            { name: "Mangaluru", lat: 12.9141, lng: 74.8560, desc: "New Mangalore Port Trust (NMPT Hub) - Coastal Corridor" },
+            { name: "Mumbai (JNPT)", lat: 18.9894, lng: 73.0276, desc: "Nhava Sheva Port Terminal & CIDCO Hub" },
+            { name: "Delhi (NCR)", lat: 28.3888, lng: 76.9840, desc: "Gurugram NH-48 Logistics Park" },
+            { name: "Chennai", lat: 13.0827, lng: 80.2707, desc: "Chennai Port & Auto Cluster Depot" },
+            { name: "Bengaluru", lat: 12.9716, lng: 77.5946, desc: "Whitefield ICD & Electronics City" },
+            { name: "Kolkata", lat: 22.5726, lng: 88.3639, desc: "Syama Prasad Mookerjee Port & Dankuni" }
+        ];
+
+        // 2. 10+ Diverse Fleet Dataset Across Indian Logistics Companies
+        let fleetData = [
+            { id: "KA-19-AB-2041", company: "VRL Logistics", driver: "Ramesh Naik", truck: "Tata Signa 4825.TK (Multi-Axle)", lat: 12.9141, lng: 74.8560, city: "Mangaluru", speed: "0 km/h (Docked)", status: "Loading" },
+            { id: "KA-19-MF-9022", company: "Rivigo Freight", driver: "Guru Prasad", truck: "Ashok Leyland 2820 (Relay)", lat: 12.9450, lng: 74.8900, city: "Mangaluru", speed: "52 km/h", status: "In Transit" },
+            { id: "MH-04-GP-8832", company: "TCI Express", driver: "Sunil Shinde", truck: "BharatBenz 3523R (Heavy)", lat: 18.9894, lng: 73.0276, city: "Mumbai (JNPT)", speed: "44 km/h", status: "In Transit" },
+            { id: "MH-12-RN-7710", company: "CONCOR India", driver: "Mahesh Patil", truck: "40ft Container Carrier", lat: 19.0400, lng: 73.0700, city: "Mumbai (JNPT)", speed: "0 km/h (Yard)", status: "Available" },
+            { id: "DL-01-AX-5519", company: "Delhivery Freight", driver: "Harpreet Singh", truck: "Eicher Pro 6028 (Express)", lat: 28.3888, lng: 76.9840, city: "Delhi (NCR)", speed: "58 km/h", status: "In Transit" },
+            { id: "HR-55-CC-4011", company: "Blue Dart Express", driver: "Vikram Yadav", truck: "Tata Ultra EV-Freight", lat: 28.4500, lng: 77.0200, city: "Delhi (NCR)", speed: "35 km/h", status: "In Transit" },
+            { id: "TN-02-BQ-9011", company: "VRL Logistics", driver: "K. Selvam", truck: "Ashok Leyland 4220", lat: 13.0827, lng: 80.2707, city: "Chennai", speed: "0 km/h (Yard)", status: "Available" },
+            { id: "TN-09-DE-3120", company: "TCI Express", driver: "M. Murugan", truck: "Reefer Cold Chain 32ft", lat: 13.1200, lng: 80.2200, city: "Chennai", speed: "46 km/h", status: "In Transit" },
+            { id: "KA-01-JJ-6671", company: "Delhivery Freight", driver: "Manjunath S.", truck: "Tata Prima 4028.S", lat: 12.9716, lng: 77.5946, city: "Bengaluru", speed: "40 km/h", status: "In Transit" },
+            { id: "WB-11-AA-8099", company: "CONCOR India", driver: "Subhash Roy", truck: "Multi-Axle Trailer (Flatbed)", lat: 22.5726, lng: 88.3639, city: "Kolkata", speed: "0 km/h (Port Dock)", status: "Loading" }
+        ];
+
+        // 3. E-Way Database
+        let ewayDatabase = {
+            "KA-19-AB-2041": { eway: "EWB-3301889920", vehicle: "KA-19-AB-2041", consignor: "Mangalore Chemicals & Fert.", consignee: "Kisan Agro Hub (Hassan)", item: "Urea Fertilizer (14 MT)", status: "Active / Cleared", tollPlaza: "Brahmarakootlu Toll (FASTag ₹120)" },
+            "KA-19-MF-9022": { eway: "EWB-4419082119", vehicle: "KA-19-MF-9022", consignor: "NMPT Port CFS", consignee: "Peenya Industrial Area", item: "Auto Components (18 MT)", status: "In-Transit", tollPlaza: "Surathkal Toll (FASTag ₹140)" },
+            "MH-04-GP-8832": { eway: "EWB-9481029410", vehicle: "MH-04-GP-8832", consignor: "Reliance Petrochem (Hazira)", consignee: "Tata Motors (Pune)", item: "Polymer Pellets (22 MT)", status: "Active / In-Transit", tollPlaza: "Khalapur Toll Plaza (FASTag ₹380)" },
+            "DL-01-AX-5519": { eway: "EWB-1102984120", vehicle: "DL-01-AX-5519", consignor: "Delhi Central Fulfillment", consignee: "Jaipur Logistics Terminal", item: "E-Commerce Parcels (8 MT)", status: "In-Transit", tollPlaza: "Kherki Daula (FASTag ₹95)" }
+        };
+
+        // Initialize Map
+        const map = L.map('map').setView([20.5937, 78.9629], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markers = [];
+        let infraLayers = { flood: [], weighbridge: [], ev: [] };
+        let infraState = { flood: false, weighbridge: false, ev: false };
+
+        // Draw Infrastructure Layers
+        function initInfrastructureLayers() {
+            // 1. Flood Risk Layers (e.g. Coastal Lowlands & Monsoon Chokepoints)
+            const floodZones = [
+                { lat: 12.8600, lng: 74.8400, radius: 4500, desc: "Netravati River Basin & Low-Lying Arterial Bypass" },
+                { lat: 18.9600, lng: 72.9300, radius: 6000, desc: "Thane Creek Coastal Inundation Risk Area" }
+            ];
+            floodZones.forEach(z => {
+                const c = L.circle([z.lat, z.lng], { color: '#3b82f6', fillColor: '#60a5fa', fillOpacity: 0.35, radius: z.radius })
+                    .bindPopup(`<b>🌊 Flood Warning & Inundation Buffer:</b><br>${z.desc}`);
+                infraLayers.flood.push(c);
+            });
+
+            // 2. Weigh-in-Motion / Axle Load Checkposts
+            const weighCheckpoints = [
+                { lat: 12.9200, lng: 74.8800, name: "Surathkal WIM Weighbridge (NMPT Outflow)" },
+                { lat: 19.0300, lng: 73.0600, name: "JNPT Automated Tare & Axle Weight Gate" },
+                { lat: 28.4000, lng: 77.0100, name: "Gurugram NH-48 Smart Sensor Checkpost" }
+            ];
+            weighCheckpoints.forEach(w => {
+                const m = L.circleMarker([w.lat, w.lng], { radius: 8, color: '#d97706', fillColor: '#fbbf24', fillOpacity: 0.9 })
+                    .bindPopup(`<b>⚖️ Axle-Load Sensor Checkpost:</b><br>${w.name}`);
+                infraLayers.weighbridge.push(m);
+            });
+
+            // 3. EV Freight Hubs
+            const evHubs = [
+                { lat: 12.9800, lng: 77.6000, name: "Bengaluru East Mega EV Freight Charging Terminal" },
+                { lat: 28.4600, lng: 77.0300, name: "Delhi-NCR 250kW Heavy Vehicle EV Supercharger" }
+            ];
+            evHubs.forEach(e => {
+                const m = L.circleMarker([e.lat, e.lng], { radius: 8, color: '#16a34a', fillColor: '#4ade80', fillOpacity: 0.9 })
+                    .bindPopup(`<b>⚡ High-Power EV Truck Fast Charger:</b><br>${e.name}`);
+                infraLayers.ev.push(m);
+            });
+        }
+
+        initInfrastructureLayers();
+
+        function toggleInfrastructure(type) {
+            infraState[type] = !infraState[type];
+            const btn = document.getElementById(type === 'flood' ? 'btnFlood' : type === 'weighbridge' ? 'btnWeigh' : 'btnEV');
+
+            if (infraState[type]) {
+                btn.classList.add('bg-slate-900', 'text-white');
+                btn.classList.remove('bg-white', 'text-slate-700');
+                infraLayers[type].forEach(layer => map.addLayer(layer));
+            } else {
+                btn.classList.remove('bg-slate-900', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-700');
+                infraLayers[type].forEach(layer => map.removeLayer(layer));
+            }
+        }
+
+        function populateCityDropdowns() {
+            const regSelect = document.getElementById("regAssignedCity");
+            const filterSelect = document.getElementById("filterCity");
+
+            regSelect.innerHTML = "";
+            filterSelect.innerHTML = `<option value="ALL">All Hubs (Pan-India)</option>`;
+
+            cityDatabase.forEach((city, index) => {
+                const opt1 = document.createElement("option");
+                opt1.value = city.name;
+                opt1.textContent = `${city.name} (${city.desc})`;
+                regSelect.appendChild(opt1);
+
+                const opt2 = document.createElement("option");
+                opt2.value = city.name;
+                opt2.textContent = city.name;
+                filterSelect.appendChild(opt2);
+            });
+
+            document.getElementById("statCityCount").textContent = cityDatabase.length;
+        }
+
+        function renderFleet() {
+            // Clear markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            const selectedCity = document.getElementById("filterCity").value;
+            const selectedCompany = document.getElementById("filterCompany").value;
+            const vehicleListEl = document.getElementById('vehicleList');
+            vehicleListEl.innerHTML = '';
+
+            const filteredVehicles = fleetData.filter(truck => {
+                const cityMatch = (selectedCity === "ALL" || truck.city === selectedCity);
+                const compMatch = (selectedCompany === "ALL" || truck.company === selectedCompany);
+                return cityMatch && compMatch;
+            });
+
+            filteredVehicles.forEach((truck) => {
+                const marker = L.marker([truck.lat, truck.lng]).addTo(map);
+                marker.bindPopup(`
+          <div class="font-sans text-xs">
+            <b class="text-blue-700 font-mono text-sm">${truck.id}</b><br>
+            <b>Operator:</b> <span class="text-amber-700 font-bold">${truck.company}</span><br>
+            <b>Truck:</b> ${truck.truck}<br>
+            <b>Driver:</b> ${truck.driver}<br>
+            <b>Hub City:</b> ${truck.city}<br>
+            <span class="font-bold text-emerald-700">${truck.speed}</span>
+          </div>
+        `);
+                markers.push(marker);
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-brand-600 transition cursor-pointer";
+                card.onclick = () => {
+                    map.setView([truck.lat, truck.lng], 12);
+                    marker.openPopup();
+                };
+                card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <span class="font-black text-xs font-mono bg-slate-900 text-amber-400 px-2 py-0.5 rounded tracking-wider">${truck.id}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${truck.status === 'In Transit' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}">${truck.status}</span>
+          </div>
+          <p class="text-xs font-bold text-slate-800 mt-1.5">${truck.company} &bull; <span class="text-slate-500 font-normal">${truck.truck}</span></p>
+          <p class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3 text-slate-400"></i> ${truck.driver} | <i data-lucide="map-pin" class="w-3 h-3 text-brand-600"></i> ${truck.city}</p>
+        `;
+                vehicleListEl.appendChild(card);
+            });
+
+            document.getElementById("statFleetCount").textContent = fleetData.length;
+            lucide.createIcons();
+        }
+
+        function applyFilters() {
+            renderFleet();
+            const selectedCity = document.getElementById("filterCity").value;
+            if (selectedCity !== "ALL") {
+                const cityObj = cityDatabase.find(c => c.name === selectedCity);
+                if (cityObj) map.setView([cityObj.lat, cityObj.lng], 10);
+            } else {
+                map.setView([20.5937, 78.9629], 5);
+            }
+        }
+
+        function handleRegisterVehicle(event) {
+            event.preventDefault();
+
+            const plate = document.getElementById("regPlateNumber").value.trim().toUpperCase();
+            const company = document.getElementById("regCompany").value;
+            const truck = document.getElementById("regTruckModel").value.trim();
+            const driver = document.getElementById("regDriverName").value.trim();
+            const cityName = document.getElementById("regAssignedCity").value;
+            const status = document.getElementById("regVehicleStatus").value;
+
+            const chosenCity = cityDatabase.find(c => c.name === cityName);
+            const offsetLat = chosenCity.lat + (Math.random() - 0.5) * 0.04;
+            const offsetLng = chosenCity.lng + (Math.random() - 0.5) * 0.04;
+
+            const newVehicle = {
+                id: plate,
+                company: company,
+                driver: driver,
+                truck: truck,
+                lat: offsetLat,
+                lng: offsetLng,
+                city: cityName,
+                speed: status === "In Transit" ? "45 km/h" : "0 km/h",
+                status: status
+            };
+
+            fleetData.unshift(newVehicle);
+
+            // Auto register to mock database
+            ewayDatabase[plate] = {
+                eway: `EWB-${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                vehicle: plate,
+                consignor: `${cityName} Logistics Hub (${company})`,
+                consignee: "State Central Freight Warehouse",
+                item: "Consolidated Cargo (15 MT)",
+                status: "Active Verified",
+                tollPlaza: "FASTag Linked - Active"
+            };
+
+            renderFleet();
+            map.setView([offsetLat, offsetLng], 11);
+            alert(`Vehicle [${plate}] successfully registered under ${company} at ${cityName}!`);
+
+            document.getElementById("regPlateNumber").value = "";
+            document.getElementById("regTruckModel").value = "";
+            document.getElementById("regDriverName").value = "";
+        }
+
+        function handleAddCity(event) {
+            event.preventDefault();
+
+            const name = document.getElementById("cityNameInput").value.trim();
+            const lat = parseFloat(document.getElementById("cityLatInput").value);
+            const lng = parseFloat(document.getElementById("cityLngInput").value);
+            const desc = document.getElementById("cityHubDesc").value.trim();
+
+            const newCity = { name, lat, lng, desc };
+            cityDatabase.push(newCity);
+
+            populateCityDropdowns();
+            map.setView([lat, lng], 10);
+
+            L.circle([lat, lng], {
+                color: '#16a34a',
+                fillColor: '#22c55e',
+                fillOpacity: 0.3,
+                radius: 3500
+            }).addTo(map).bindPopup(`<b>${name} Infrastructure Node</b><br>${desc}`).openPopup();
+
+            alert(`Logistics & Infrastructure Node [${name}] added to grid.`);
+
+            document.getElementById("cityNameInput").value = "";
+            document.getElementById("cityLatInput").value = "";
+            document.getElementById("cityLngInput").value = "";
+            document.getElementById("cityHubDesc").value = "";
+        }
+
+        function refreshTrucks() {
+            fleetData.forEach((truck) => {
+                if (truck.status === "In Transit") {
+                    truck.lat += (Math.random() - 0.5) * 0.03;
+                    truck.lng += (Math.random() - 0.5) * 0.03;
+                }
+            });
+            renderFleet();
+        }
+
+        function handleIndianTracking() {
+            const query = document.getElementById("trackingIdInput").value.trim().toUpperCase();
+            const output = document.getElementById("trackingResult");
+            output.classList.remove("hidden");
+
+            if (!query) {
+                output.innerHTML = `<p class="text-xs text-red-400">Please enter a valid Plate Number or E-Way ID.</p>`;
+                return;
+            }
+
+            if (ewayDatabase[query]) {
+                const item = ewayDatabase[query];
+                output.innerHTML = `
+          <div class="border-b border-slate-700 pb-2 mb-2 flex justify-between items-center">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-brand-400 tracking-wider">ULIP Authenticated Record</span>
+              <p class="text-base font-bold text-white">${item.eway}</p>
+            </div>
+            <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded font-bold">${item.status}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+            <p><strong class="text-slate-400">Vehicle Plate:</strong> <span class="text-amber-400 font-mono font-bold bg-slate-900 px-1 py-0.5 rounded">${item.vehicle}</span></p>
+            <p><strong class="text-slate-400">Consignment:</strong> ${item.item}</p>
+            <p><strong class="text-slate-400">From:</strong> ${item.consignor}</p>
+            <p><strong class="text-slate-400">To:</strong> ${item.consignee}</p>
+            <p class="sm:col-span-2 text-amber-300 mt-1"><i data-lucide="radio" class="w-3.5 h-3.5 inline mr-1"></i><strong>FASTag Status:</strong> ${item.tollPlaza}</p>
+          </div>
+        `;
+                lucide.createIcons();
+            } else {
+                output.innerHTML = `<p class="text-xs text-amber-400">No active record for "${query}". Try testing with <strong>KA-19-AB-2041</strong>, <strong>KA-19-MF-9022</strong>, or <strong>DL-01-AX-5519</strong>.</p>`;
+            }
+        }
+
+        function autoFillDistance() {
+            const select = document.getElementById("routeSelect");
+            const distInput = document.getElementById("customDistance");
+            if (select.value !== "custom") {
+                distInput.value = select.value;
+            }
+        }
+
+        function calculateIndianFreight(event) {
+            event.preventDefault();
+
+            const distance = parseFloat(document.getElementById("customDistance").value) || 0;
+            const tonnage = parseFloat(document.getElementById("tonnage").value) || 0;
+            const ratePerTonKm = parseFloat(document.getElementById("truckType").value) || 14;
+            const gstPercent = parseFloat(document.getElementById("gstRate").value) || 0.05;
+
+            const select = document.getElementById("routeSelect");
+            const tollEstimate = select.selectedIndex >= 0 && select.value !== "custom"
+                ? parseFloat(select.options[select.selectedIndex].getAttribute("data-tolls"))
+                : Math.round(distance * 1.3);
+
+            const baseFreight = distance * (ratePerTonKm * (tonnage * 0.45));
+            const gstAmount = baseFreight * gstPercent;
+            const netTotal = baseFreight + tollEstimate + gstAmount;
+
+            const carbon = Math.round(distance * tonnage * 0.115);
+            const fuelSaved = Math.round((distance * 0.08));
+
+            document.getElementById("baseFreight").textContent = `₹ ${Math.round(baseFreight).toLocaleString('en-IN')}`;
+            document.getElementById("fastagToll").textContent = `₹ ${tollEstimate.toLocaleString('en-IN')}`;
+            document.getElementById("gstAmount").textContent = `₹ ${Math.round(gstAmount).toLocaleString('en-IN')}`;
+            document.getElementById("netTotal").textContent = `₹ ${Math.round(netTotal).toLocaleString('en-IN')}`;
+
+            document.getElementById("carbonEmission").textContent = `${carbon.toLocaleString('en-IN')} kg CO₂`;
+            document.getElementById("fuelSaved").textContent = `${fuelSaved} Liters (via Decongestion)`;
+
+            document.getElementById("costManifest").classList.remove("hidden");
+        }
+
+        populateCityDropdowns();
+        renderFleet();
+    </script>
+</body>
+
+</html>

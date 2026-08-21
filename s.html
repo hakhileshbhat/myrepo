@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GatiSetu OS | Smart Logistics</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Leaflet.js for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        .map-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans flex h-screen overflow-hidden">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col h-full shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg"><i data-lucide="truck" class="w-6 h-6 text-white"></i></div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight">Gati<span class="text-orange-500">Setu</span> OS</h1>
+                    <p class="text-[10px] text-green-400 font-mono tracking-wider">GitHub Pages Edition</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="switchTab('routing')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-left transition-colors bg-slate-800 text-blue-400"
+                id="btn-routing">
+                <i data-lucide="brain-circuit" class="w-4 h-4"></i> EcoRoute AI
+            </button>
+            <button onclick="switchTab('radar')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-left transition-colors text-slate-400"
+                id="btn-radar">
+                <i data-lucide="map-pin" class="w-4 h-4"></i> Live Fleet Radar
+            </button>
+            <button onclick="switchTab('tariffs')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-left transition-colors text-slate-400"
+                id="btn-tariffs">
+                <i data-lucide="indian-rupee" class="w-4 h-4"></i> Tariffs & Carbon
+            </button>
+            <button onclick="switchTab('command')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl hover:bg-slate-800 text-left transition-colors text-slate-400"
+                id="btn-command">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Network Command
+            </button>
+        </nav>
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 h-full overflow-y-auto bg-slate-50 p-8">
+
+        <!-- 1. ECOROUTE AI PLANNER -->
+        <div id="tab-routing" class="tab-content active max-w-5xl mx-auto">
+            <h2 class="text-3xl font-black text-slate-900 mb-2">🧠 EcoRoute AI Planner</h2>
+            <p class="text-slate-500 mb-8">Dynamic Dijkstra shortest-path calculation avoiding active urban floods and
+                congestion.</p>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Origin Hub</label>
+                        <select id="routeOrigin"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Destination Hub</label>
+                        <select id="routeDest"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600"></select>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <label
+                        class="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer">
+                        <input type="checkbox" id="avoidFlood" checked class="w-4 h-4 text-blue-600"> 🌊 Avoid Coastal
+                        Floods
+                    </label>
+                    <label
+                        class="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer">
+                        <input type="checkbox" id="avoidCongest" checked class="w-4 h-4 text-orange-600"> ⚠️ Avoid Metro
+                        Congestion
+                    </label>
+                    <label
+                        class="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer">
+                        <input type="checkbox" id="avoidLandslide" checked class="w-4 h-4 text-red-600"> ⛰️ Avoid
+                        Landslides
+                    </label>
+                </div>
+
+                <button onclick="calculateRoute()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-150 shadow-md">
+                    Calculate Shortest Safe Path
+                </button>
+            </div>
+
+            <div id="routeResult" class="hidden mb-6">
+                <div
+                    class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <span class="text-[10px] text-green-400 font-bold uppercase tracking-widest">Safe Corridor
+                            Found</span>
+                        <p id="routePath" class="text-lg font-bold mt-1"></p>
+                    </div>
+                    <div class="flex gap-6 text-center">
+                        <div>
+                            <p class="text-xs text-slate-400">Distance</p>
+                            <p id="routeDist" class="text-xl font-black text-white"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Est. Time</p>
+                            <p id="routeTime" class="text-xl font-black text-sky-400"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="map-routing" class="map-container border border-slate-300 shadow-sm"></div>
+        </div>
+
+        <!-- 2. LIVE FLEET RADAR -->
+        <div id="tab-radar" class="tab-content max-w-6xl mx-auto">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">📍 Live Fleet Radar</h2>
+                    <p class="text-slate-500">Live GPS tracking across the logistics network.</p>
+                </div>
+                <button onclick="renderRadarMap()"
+                    class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50 shadow-sm">
+                    Refresh Telematics
+                </button>
+            </div>
+            <div id="map-radar" class="map-container mb-6 border border-slate-300 shadow-sm"></div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="p-4">Plate No.</th>
+                            <th class="p-4">Operator</th>
+                            <th class="p-4">Driver</th>
+                            <th class="p-4">Hub Location</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fleetTableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. TARIFFS & CARBON -->
+        <div id="tab-tariffs" class="tab-content max-w-4xl mx-auto">
+            <h2 class="text-3xl font-black text-slate-900 mb-2">🚆 Freight Economics & Carbon</h2>
+            <p class="text-slate-500 mb-8">Calculate costs across Highway, Train RO-RO, and Overnight Bus Belly modes.
+            </p>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Distance (km)</label>
+                        <input type="number" id="tDist" value="350" min="1"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Payload (kg)</label>
+                        <input type="number" id="tWeight" value="1500" min="10"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Transit Mode</label>
+                        <select id="tMode"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                            <option value="highway">Highway Truck (₹0.012/kg/km)</option>
+                            <option value="roro">Train RO-RO (₹0.009/kg/km)</option>
+                            <option value="bus">Bus Belly Freight (₹0.025/kg/km)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calculateTariff()"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-150 shadow-md">
+                    Generate Cost Manifest
+                </button>
+
+                <div id="tariffResult" class="hidden mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-slate-500">Base Haulage</p>
+                        <p id="resBase" class="text-xl font-black text-slate-900 mt-1"></p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-slate-500">GST + Tolls</p>
+                        <p id="resTax" class="text-xl font-black text-slate-900 mt-1"></p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-blue-600">Net Total (INR)</p>
+                        <p id="resTotal" class="text-xl font-black text-blue-700 mt-1"></p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
+                        <p class="text-[10px] uppercase font-bold text-green-600">CO₂ Footprint</p>
+                        <p id="resCarbon" class="text-xl font-black text-green-700 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. NETWORK COMMAND -->
+        <div id="tab-command" class="tab-content max-w-5xl mx-auto">
+            <h2 class="text-3xl font-black text-slate-900 mb-2">➕ Network Command</h2>
+            <p class="text-slate-500 mb-8">Dynamically expand the routing graph or register new vehicles.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Add City Form -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"><i
+                            data-lucide="map-pinned" class="w-5 h-5 text-green-600"></i> Add City Hub</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="addCityName" placeholder="City Name (e.g. Mysuru)"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-green-600">
+                        <div class="flex gap-4">
+                            <input type="number" id="addCityLat" placeholder="Lat (12.2958)"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-green-600">
+                            <input type="number" id="addCityLng" placeholder="Lng (76.6394)"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-green-600">
+                        </div>
+                        <select id="addCityTarget"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-green-600"></select>
+                        <input type="number" id="addCityDist" placeholder="Distance to target (km)"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-green-600">
+                        <button onclick="addCity()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition duration-150">Deploy
+                            Hub to Graph</button>
+                    </div>
+                </div>
+
+                <!-- Add Vehicle Form -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2"><i data-lucide="truck"
+                            class="w-5 h-5 text-blue-600"></i> Register Vehicle</h3>
+                    <div class="space-y-4">
+                        <input type="text" id="addTruckPlate" placeholder="Plate (e.g. KA-19-ME-8821)"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold uppercase focus:ring-2 focus:ring-blue-600">
+                        <input type="text" id="addTruckDriver" placeholder="Driver Name"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                        <select id="addTruckCompany"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600">
+                            <option>VRL Logistics</option>
+                            <option>TCI Express</option>
+                            <option>KSRTC Cargo</option>
+                            <option>Blue Dart</option>
+                        </select>
+                        <select id="addTruckCity"
+                            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-blue-600"></select>
+                        <button onclick="addTruck()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-150">Deploy
+                            Vehicle</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= APPLICATION LOGIC (JAVASCRIPT) ================= -->
+    <script>
+        lucide.createIcons();
+
+        // --- STATE MANAGEMENT ---
+        const state = {
+            cities: {
+                "Mangaluru": { lat: 12.9141, lng: 74.8560 },
+                "Kasaragod": { lat: 12.4996, lng: 74.9869 },
+                "Hassan": { lat: 13.0033, lng: 76.1004 },
+                "Bengaluru": { lat: 12.9716, lng: 77.5946 },
+                "Hubballi": { lat: 15.3647, lng: 75.1240 },
+                "Pune": { lat: 18.5204, lng: 73.8567 },
+                "Mumbai": { lat: 18.9894, lng: 73.0276 },
+                "Delhi": { lat: 28.3888, lng: 76.9840 },
+                "Ladakh": { lat: 34.1526, lng: 77.5771 }
+            },
+            edges: [
+                { from: "Kasaragod", to: "Mangaluru", dist: 50, hazard: null },
+                { from: "Mangaluru", to: "Hassan", dist: 170, hazard: "flood" },
+                { from: "Mangaluru", to: "Hubballi", dist: 360, hazard: null },
+                { from: "Hassan", to: "Bengaluru", dist: 180, hazard: null },
+                { from: "Hubballi", to: "Bengaluru", dist: 410, hazard: null },
+                { from: "Hubballi", to: "Pune", dist: 440, hazard: null },
+                { from: "Pune", to: "Mumbai", dist: 150, hazard: "congestion" },
+                { from: "Pune", to: "Delhi", dist: 1450, hazard: null },
+                { from: "Mumbai", to: "Delhi", dist: 1420, hazard: null },
+                { from: "Delhi", to: "Ladakh", dist: 1000, hazard: "landslide" }
+            ],
+            fleet: [
+                { plate: "KA-19-ME-8821", driver: "Dhiksh", company: "VRL Logistics", city: "Mangaluru", status: "In Transit" },
+                { plate: "KA-20-PQ-1102", driver: "Chimany", company: "KSRTC Cargo", city: "Bengaluru", status: "Loading" },
+                { plate: "MH-04-AB-9934", driver: "Himanshu", company: "TCI Express", city: "Mumbai", status: "In Transit" }
+            ]
+        };
+
+        let mapRouting, mapRadar;
+        let routingLayerGroup, radarLayerGroup;
+
+        // --- INITIALIZATION ---
+        function initMaps() {
+            mapRouting = L.map('map-routing').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRouting);
+            routingLayerGroup = L.layerGroup().addTo(mapRouting);
+
+            mapRadar = L.map('map-radar').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRadar);
+            radarLayerGroup = L.layerGroup().addTo(mapRadar);
+        }
+
+        function populateDropdowns() {
+            const cityNames = Object.keys(state.cities);
+            const selects = ['routeOrigin', 'routeDest', 'addCityTarget', 'addTruckCity'];
+
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                el.innerHTML = '';
+                cityNames.forEach(city => {
+                    el.add(new Option(city, city));
+                });
+            });
+            document.getElementById('routeDest').value = "Bengaluru";
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('bg-slate-800', 'text-blue-400');
+                el.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            const btn = document.getElementById(`btn-${tabId}`);
+            btn.classList.add('bg-slate-800', 'text-blue-400');
+            btn.classList.remove('text-slate-400');
+
+            if (tabId === 'routing') { mapRouting.invalidateSize(); drawBaseGraph(routingLayerGroup); }
+            if (tabId === 'radar') { mapRadar.invalidateSize(); renderRadarMap(); }
+        }
+
+        // --- DIJKSTRA ALGORITHM IN JS ---
+        function dijkstra(start, end, avoidFlood, avoidCongest, avoidLandslide) {
+            // Build adjacency list
+            let adj = {};
+            Object.keys(state.cities).forEach(c => adj[c] = []);
+            state.edges.forEach(e => {
+                let penalty = 0;
+                if (e.hazard === "flood" && avoidFlood) penalty += 9999;
+                if (e.hazard === "congestion" && avoidCongest) penalty += 5000;
+                if (e.hazard === "landslide" && avoidLandslide) penalty += 9999;
+
+                let cost = e.dist + penalty;
+                adj[e.from].push({ node: e.to, cost: cost, realDist: e.dist });
+                adj[e.to].push({ node: e.from, cost: cost, realDist: e.dist }); // Bidirectional
+            });
+
+            let distances = {}, previous = {}, unvisited = new Set();
+            Object.keys(state.cities).forEach(c => { distances[c] = Infinity; previous[c] = null; unvisited.add(c); });
+            distances[start] = 0;
+
+            while (unvisited.size > 0) {
+                let curr = null;
+                unvisited.forEach(node => {
+                    if (curr === null || distances[node] < distances[curr]) curr = node;
+                });
+
+                if (distances[curr] === Infinity || curr === end) break;
+                unvisited.delete(curr);
+
+                adj[curr].forEach(neighbor => {
+                    if (unvisited.has(neighbor.node)) {
+                        let alt = distances[curr] + neighbor.cost;
+                        if (alt < distances[neighbor.node]) {
+                            distances[neighbor.node] = alt;
+                            previous[neighbor.node] = { node: curr, realDist: neighbor.realDist };
+                        }
+                    }
+                });
+            }
+
+            let path = [], u = end, totalRealDist = 0;
+            if (previous[u] !== null || u === start) {
+                while (u !== null) {
+                    path.unshift(u);
+                    if (previous[u]) totalRealDist += previous[u].realDist;
+                    u = previous[u] ? previous[u].node : null;
+                }
+            }
+            return { path, dist: totalRealDist, cost: distances[end] };
+        }
+
+        function calculateRoute() {
+            const origin = document.getElementById('routeOrigin').value;
+            const dest = document.getElementById('routeDest').value;
+            if (origin === dest) { alert("Origin and Destination must be different."); return; }
+
+            const avoidF = document.getElementById('avoidFlood').checked;
+            const avoidC = document.getElementById('avoidCongest').checked;
+            const avoidL = document.getElementById('avoidLandslide').checked;
+
+            const result = dijkstra(origin, dest, avoidF, avoidC, avoidL);
+
+            if (result.path.length === 0 || result.cost >= 5000) {
+                alert("No valid safe route found!");
+                return;
+            }
+
+            document.getElementById('routeResult').classList.remove('hidden');
+            document.getElementById('routePath').innerText = result.path.join(" ➔ ");
+            document.getElementById('routeDist').innerText = `${result.dist} km`;
+            document.getElementById('routeTime').innerText = `${(result.dist / 45).toFixed(1)} hrs`;
+
+            drawBaseGraph(routingLayerGroup);
+
+            let latlngs = result.path.map(p => [state.cities[p].lat, state.cities[p].lng]);
+            L.polyline(latlngs, { color: '#16a34a', weight: 6, opacity: 0.9 }).addTo(routingLayerGroup);
+
+            result.path.forEach(p => {
+                L.circleMarker([state.cities[p].lat, state.cities[p].lng], { radius: 6, color: '#16a34a', fillOpacity: 1 }).addTo(routingLayerGroup).bindPopup(p);
+            });
+        }
+
+        function drawBaseGraph(layerGroup) {
+            layerGroup.clearLayers();
+            state.edges.forEach(e => {
+                const p1 = state.cities[e.from];
+                const p2 = state.cities[e.to];
+                L.polyline([[p1.lat, p1.lng], [p2.lat, p2.lng]], { color: 'gray', weight: 1.5, opacity: 0.3 }).addTo(layerGroup);
+            });
+        }
+
+        // --- FLEET RADAR ---
+        function renderRadarMap() {
+            drawBaseGraph(radarLayerGroup);
+            const tbody = document.getElementById('fleetTableBody');
+            tbody.innerHTML = '';
+
+            state.fleet.forEach(t => {
+                // Map Marker
+                const coords = state.cities[t.city];
+                const lat = coords.lat + (Math.random() - 0.5) * 0.05;
+                const lng = coords.lng + (Math.random() - 0.5) * 0.05;
+                L.marker([lat, lng]).addTo(radarLayerGroup)
+                    .bindPopup(`<b>${t.plate}</b><br>${t.company}<br>${t.status}`);
+
+                // Table Row
+                const badgeColor = t.status === "In Transit" ? "bg-blue-100 text-blue-700" : "bg-orange-100 text-orange-700";
+                tbody.innerHTML += `
+          <tr class="hover:bg-slate-50">
+            <td class="p-4 font-mono font-bold text-slate-900">${t.plate}</td>
+            <td class="p-4 font-semibold">${t.company}</td>
+            <td class="p-4 text-slate-500">${t.driver}</td>
+            <td class="p-4">${t.city}</td>
+            <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${t.status}</span></td>
+          </tr>
+        `;
+            });
+        }
+
+        // --- TARIFFS CALCULATOR ---
+        function calculateTariff() {
+            const dist = parseFloat(document.getElementById('tDist').value);
+            const weight = parseFloat(document.getElementById('tWeight').value);
+            const mode = document.getElementById('tMode').value;
+
+            let rate = mode === 'highway' ? 0.012 : mode === 'roro' ? 0.009 : 0.025;
+            let base = dist * weight * rate;
+            if (mode === 'bus' && weight > 500) base += (weight - 500) * 15;
+
+            const gst = base * 0.05;
+            const toll = mode === 'highway' ? dist * 1.35 : 0;
+            const total = base + gst + toll;
+            const co2 = (weight / 1000) * dist * (mode === 'highway' ? 0.115 : 0.035);
+
+            document.getElementById('tariffResult').classList.remove('hidden');
+            document.getElementById('resBase').innerText = `₹ ${Math.round(base).toLocaleString('en-IN')}`;
+            document.getElementById('resTax').innerText = `₹ ${Math.round(gst + toll).toLocaleString('en-IN')}`;
+            document.getElementById('resTotal').innerText = `₹ ${Math.round(total).toLocaleString('en-IN')}`;
+            document.getElementById('resCarbon').innerText = `${Math.round(co2).toLocaleString('en-IN')} kg`;
+        }
+
+        // --- COMMAND (ADD RECORDS) ---
+        function addCity() {
+            const name = document.getElementById('addCityName').value;
+            const lat = parseFloat(document.getElementById('addCityLat').value);
+            const lng = parseFloat(document.getElementById('addCityLng').value);
+            const target = document.getElementById('addCityTarget').value;
+            const dist = parseFloat(document.getElementById('addCityDist').value);
+
+            if (!name || isNaN(lat) || isNaN(lng) || isNaN(dist)) { alert("Fill all city fields correctly."); return; }
+
+            state.cities[name] = { lat: lat, lng: lng };
+            state.edges.push({ from: name, to: target, dist: dist, hazard: null });
+            populateDropdowns();
+            alert(`Hub ${name} connected to ${target}!`);
+        }
+
+        function addTruck() {
+            const plate = document.getElementById('addTruckPlate').value.toUpperCase();
+            const driver = document.getElementById('addTruckDriver').value;
+            const company = document.getElementById('addTruckCompany').value;
+            const city = document.getElementById('addTruckCity').value;
+
+            if (!plate || !driver) { alert("Fill plate and driver name."); return; }
+
+            state.fleet.push({ plate: plate, driver: driver, company: company, city: city, status: "Loading" });
+            alert(`Vehicle ${plate} registered successfully!`);
+        }
+
+        // On Load
+        initMaps();
+        populateDropdowns();
+        switchTab('routing');
+    </script>
+</body>
+
+</html>
