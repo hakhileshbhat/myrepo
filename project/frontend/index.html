@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandPulse - Social Media Sentiment Dashboard</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fa-solid fa-chart-line pulse-icon"></i>
+                <span class="logo-text">Brand<span class="logo-accent">Pulse</span></span>
+            </div>
+            <div class="nav-status">
+                <span class="status-indicator live"></span>
+                <span class="status-text">Live Sync Active</span>
+            </div>
+        </nav>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-grid">
+            
+            <!-- Top Row: Summary Cards (12-cols: 3, 3, 3, 3) -->
+            <div class="summary-card instagram-card">
+                <div class="card-header">
+                    <span class="card-title">Instagram Likes</span>
+                    <i class="fa-brands fa-instagram icon-instagram"></i>
+                </div>
+                <div class="card-value" id="insta-likes">-</div>
+                <div class="card-footer positive">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span id="insta-growth">-</span>% this week
+                </div>
+            </div>
+
+            <div class="summary-card twitter-card">
+                <div class="card-header">
+                    <span class="card-title">Twitter/X Likes</span>
+                    <i class="fa-brands fa-x-twitter icon-twitter"></i>
+                </div>
+                <div class="card-value" id="twitter-likes">-</div>
+                <div class="card-footer positive">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span id="twitter-growth">-</span>% this week
+                </div>
+            </div>
+
+            <div class="summary-card comments-card">
+                <div class="card-header">
+                    <span class="card-title">Total Comments</span>
+                    <i class="fa-solid fa-comments icon-comments"></i>
+                </div>
+                <div class="card-value" id="total-comments">-</div>
+                <div class="card-footer neutral">
+                    <i class="fa-solid fa-sync fa-spin"></i>
+                    <span>Real-time aggregate</span>
+                </div>
+            </div>
+
+            <div class="summary-card sentiment-card">
+                <div class="card-header">
+                    <span class="card-title">Brand Sentiment</span>
+                    <i class="fa-solid fa-face-smile icon-sentiment"></i>
+                </div>
+                <div class="card-value" id="sentiment-score">-</div>
+                <div class="card-footer positive">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Overall Positive Ratio</span>
+                </div>
+            </div>
+
+            <!-- Middle Row: Line Chart (8 columns) & Brand Profile (4 columns) -->
+            <div class="chart-container col-span-8">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-chart-area"></i> Sentiment Trend (30 Days)</h2>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-color positive"></span>Positive</span>
+                        <span class="legend-item"><span class="legend-color neutral"></span>Neutral</span>
+                        <span class="legend-item"><span class="legend-color negative"></span>Negative</span>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Brand Profile Card (4 columns) -->
+            <div class="chart-container col-span-4 flex-col-justify">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-building"></i> Brand Details</h2>
+                    <button class="settings-toggle-btn" id="open-settings-btn">
+                        <i class="fa-solid fa-cog"></i> Edit Settings
+                    </button>
+                </div>
+                <div class="brand-profile-view" id="brand-view-panel">
+                    <div class="brand-profile-header">
+                        <div class="brand-logo-mock" id="brand-logo-text">B</div>
+                        <div>
+                            <h3 class="brand-profile-name" id="brand-profile-name">-</h3>
+                            <span class="brand-profile-industry" id="brand-profile-industry">-</span>
+                        </div>
+                    </div>
+                    <div class="brand-handles">
+                        <div class="handle-item">
+                            <i class="fa-brands fa-instagram icon-instagram"></i>
+                            <span id="brand-insta-handle">-</span>
+                        </div>
+                        <div class="handle-item">
+                            <i class="fa-brands fa-x-twitter icon-twitter"></i>
+                            <span id="brand-twitter-handle">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Toggleable brand configuration panel -->
+                <div class="brand-settings-form-panel hidden" id="brand-edit-panel">
+                    <form id="brand-settings-form" class="settings-form">
+                        <div class="form-group-compact">
+                            <label for="brand-name">Brand Name</label>
+                            <input type="text" id="brand-name" required>
+                        </div>
+                        <div class="form-group-compact">
+                            <label for="brand-industry">Industry</label>
+                            <input type="text" id="brand-industry" required>
+                        </div>
+                        <div class="form-group-compact">
+                            <label for="brand-insta">Instagram Handle</label>
+                            <input type="text" id="brand-insta" required>
+                        </div>
+                        <div class="form-group-compact">
+                            <label for="brand-twitter">Twitter Handle</label>
+                            <input type="text" id="brand-twitter" required>
+                        </div>
+                        <div class="settings-actions">
+                            <button type="submit" class="save-settings-btn">Save</button>
+                            <button type="button" class="cancel-settings-btn" id="cancel-settings-btn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Third Row: Competitor Comparison (4 cols), Sentiment Donut Chart (4 cols), Key Topics Panel (4 cols) -->
+            <div class="chart-container col-span-4">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-scale-balanced"></i> Competitor Index</h2>
+                </div>
+                <div class="chart-wrapper-small">
+                    <canvas id="competitorChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container col-span-4">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-circle-pie"></i> Sentiment Distribution</h2>
+                </div>
+                <div class="chart-wrapper-small">
+                    <canvas id="donutChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container col-span-4">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-tags"></i> Key Mentions Topics</h2>
+                </div>
+                <div class="topics-grid" id="topics-cloud">
+                    <!-- Dynamic tag clouds will be loaded -->
+                    <div class="topic-tag positive"><span class="topic-name">Product Quality</span><span class="topic-count">12</span></div>
+                    <div class="topic-tag positive"><span class="topic-name">Customer Care</span><span class="topic-count">8</span></div>
+                    <div class="topic-tag neutral"><span class="topic-name">Pricing</span><span class="topic-count">5</span></div>
+                    <div class="topic-tag negative"><span class="topic-name">Service Wait</span><span class="topic-count">4</span></div>
+                    <div class="topic-tag positive"><span class="topic-name">Atmosphere</span><span class="topic-count">3</span></div>
+                    <div class="topic-tag negative"><span class="topic-name">Packaging</span><span class="topic-count">2</span></div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Engagement Feed (8 columns) & Simulation controls (4 columns) -->
+            <div class="feed-container col-span-8">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-hashtag"></i> Mentions & Comments</h2>
+                    <!-- Filters Navigation -->
+                    <div class="feed-filters">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="instagram"><i class="fa-brands fa-instagram"></i> Instagram</button>
+                        <button class="filter-tab" data-filter="twitter"><i class="fa-brands fa-x-twitter"></i> Twitter/X</button>
+                        <button class="filter-tab text-positive" data-filter="Positive">Positive</button>
+                        <button class="filter-tab text-neutral" data-filter="Neutral">Neutral</button>
+                        <button class="filter-tab text-negative" data-filter="Negative">Negative</button>
+                    </div>
+                </div>
+                <div class="feed-list" id="mentions-feed">
+                    <div class="feed-loading">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Fetching comments feed...
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-panel col-span-4">
+                <div class="container-header">
+                    <h2 class="container-title"><i class="fa-solid fa-robot"></i> Simulation Sandbox</h2>
+                    
+                    <!-- Auto Crawler Toggle Switch -->
+                    <div class="crawler-toggle-container">
+                        <span class="crawler-label"><i class="fa-solid fa-spider"></i> Live Crawler</span>
+                        <label class="switch">
+                            <input type="checkbox" id="crawler-switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <form id="mention-form" class="mention-form-vertical">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" placeholder="coffee_lover" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="platform">Platform</label>
+                            <select id="platform" required>
+                                <option value="instagram">Instagram</option>
+                                <option value="twitter">Twitter / X</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sentiment">Sentiment Category</label>
+                        <select id="sentiment" required>
+                            <option value="Positive">Positive</option>
+                            <option value="Neutral">Neutral</option>
+                            <option value="Negative">Negative</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comment-text">Comment Snippet</label>
+                        <textarea id="comment-text" rows="2" placeholder="Write custom mention..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fa-solid fa-paper-plane"></i> Publish Mention
+                    </button>
+                </form>
+            </div>
+
+        </main>
+    </div>
+    <!-- Application JS -->
+    <script src="app.js"></script>
+</body>
+</html>

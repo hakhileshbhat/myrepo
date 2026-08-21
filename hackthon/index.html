@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Revenue & P&L Dashboard | Luxury Fashion Analytics</title>
+    <meta name="description" content="An interactive corporate dashboard displaying profit, loss, revenue, and margins for fashion dress brands. Filterable by brand and dress type.">
+    <!-- Premium Fonts -->
+    <link rel="stylesheet" href="styles.css?v=50">
+    <!-- Local Chart.js library for offline interactive visual graphs -->
+    <script src="chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Dashboard Header -->
+        <header class="dashboard-header" id="main-header">
+            <div class="brand-title">
+                <h1>Vastra Analytics</h1>
+                <span class="tag">Revenue & P&L Control</span>
+            </div>
+            <!-- Centered Business Name -->
+            <div class="business-name-center">
+                <div class="business-name-logo">🧵</div>
+                <div>
+                    <div class="business-name-text">Vastraa DTC Hub</div>
+                    <div class="business-name-sub">Fashion Intelligence Platform</div>
+                </div>
+            </div>
+            <div class="dashboard-meta">
+                <span id="date-display">Fiscal Year 2025</span>
+                <div class="db-status">
+                    <span class="status-dot"></span>
+                    <span>Database Connected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Brand and Dress Type Filters -->
+        <section class="filter-section" id="filters-container" aria-label="Dashboard Filters">
+            <div class="filter-group">
+                <div class="filter-label">Select Fashion Brand</div>
+                <div class="brands-grid" id="brands-pill-grid">
+                    <!-- Dynamic brand pills will be injected here -->
+                </div>
+            </div>
+            
+            <div class="filters-row">
+                <div class="filter-group">
+                    <div class="filter-label">Filter by Dress Type</div>
+                    <div class="dress-types-container" id="dress-types-tabs">
+                        <!-- Dynamic dress types will be injected here -->
+                    </div>
+                </div>
+                <!-- Year Selector -->
+                <div class="filter-group" style="margin-left: auto; display: flex; align-items: flex-end; gap: 8px;">
+                    <button class="year-pill active" id="year-2025" data-year="2025">📅 FY 2025</button>
+                    <button class="year-pill" id="year-2026" data-year="2026">📅 FY 2026 ★</button>
+                </div>
+                
+                <button class="reset-btn" id="btn-reset-filters" aria-label="Reset Filters">
+                    <span>🔄</span> Reset Filters
+                </button>
+            </div>
+        </section>
+
+        <!-- Financial KPI Performance Cards -->
+        <section class="kpi-grid" id="kpi-display-grid" aria-label="Key Performance Indicators">
+            
+            <!-- Revenue Card -->
+            <div class="kpi-card revenue-card" id="kpi-revenue">
+                <div class="kpi-header">
+                    <span>Total Revenue</span>
+                    <span class="kpi-icon">💰</span>
+                </div>
+                <div class="kpi-value" id="val-revenue">$0</div>
+                <div class="kpi-trend" id="trend-revenue">Gross Billing</div>
+            </div>
+
+            <!-- Cost of Goods Sold Card -->
+            <div class="kpi-card cogs-card" id="kpi-cogs">
+                <div class="kpi-header">
+                    <span>Cost of Goods (COGS)</span>
+                    <span class="kpi-icon">🧵</span>
+                </div>
+                <div class="kpi-value" id="val-cogs">$0</div>
+                <div class="kpi-trend" id="trend-cogs">Material & Labor</div>
+            </div>
+
+            <!-- Marketing Card -->
+            <div class="kpi-card marketing-card" id="kpi-marketing">
+                <div class="kpi-header">
+                    <span>Marketing Spend</span>
+                    <span class="kpi-icon">📢</span>
+                </div>
+                <div class="kpi-value" id="val-marketing">$0</div>
+                <div class="kpi-trend" id="trend-marketing">Campaigns & Promos</div>
+            </div>
+
+            <!-- Operational & Shipping Card -->
+            <div class="kpi-card shipping-card" id="kpi-shipping">
+                <div class="kpi-header">
+                    <span>Operations & Logistics</span>
+                    <span class="kpi-icon">📦</span>
+                </div>
+                <div class="kpi-value" id="val-shipping">$0</div>
+                <div class="kpi-trend" id="trend-shipping">Shipping & Fulfillment</div>
+            </div>
+
+            <!-- Total Expense Card -->
+            <div class="kpi-card expense-card" id="kpi-expense">
+                <div class="kpi-header">
+                    <span>Total Expense</span>
+                    <span class="kpi-icon">💸</span>
+                </div>
+                <div class="kpi-value" id="val-expense">₹0</div>
+                <div class="kpi-trend" id="trend-expense">COGS + Mkt + Ops</div>
+            </div>
+
+            <!-- Profit and Loss (P&L) Card -->
+            <div class="kpi-card pnl-card" id="kpi-pnl">
+                <div class="kpi-header">
+                    <span id="pnl-header-text">Net Profit / Loss</span>
+                    <span class="kpi-icon" id="pnl-icon">📈</span>
+                </div>
+                <div class="kpi-value" id="val-pnl">$0</div>
+                <div class="kpi-trend" id="trend-pnl">Earnings Post-Expenses</div>
+            </div>
+
+            <!-- Profit Margin Card -->
+            <div class="kpi-card margin-card" id="kpi-margin">
+                <div class="kpi-header">
+                    <span>Net Margin</span>
+                    <span class="kpi-icon">🎯</span>
+                </div>
+                <div class="kpi-value" id="val-margin">0%</div>
+                <div class="kpi-trend" id="trend-margin">Efficiency Ratio</div>
+            </div>
+
+        </section>
+
+        <!-- Monthly Performance Report Graph (Full Width) -->
+        <section class="monthly-report-section" aria-label="Monthly Performance Report">
+            <div class="chart-card monthly-report-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h3>📅 Monthly Performance Report</h3>
+                        <span class="chart-subtitle" id="monthly-report-sub">Revenue vs Net Profit — Jan to Dec 2025</span>
+                    </div>
+                    <div class="monthly-report-legend">
+                        <span class="legend-dot" style="background:#6366f1;"></span><span>Gross Revenue</span>
+                        <span class="legend-dot" style="background:#10b981;"></span><span>Net Profit</span>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="chart-monthly-report"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Visual Layout Section -->
+        <section class="charts-grid" aria-label="Visual Analytics Charts">
+            
+            <!-- Revenue & Expenses Line Chart -->
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h3>Revenue & Net Profit Trend</h3>
+                        <span class="chart-subtitle" id="trend-chart-sub">Monthly analysis for Fiscal Year 2025</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-revenue-trend"></canvas>
+                </div>
+            </div>
+
+            <!-- Share of Revenue / Dress Breakdown Doughnut Chart -->
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <h3>Product Revenue Share</h3>
+                        <span class="chart-subtitle" id="breakdown-chart-sub">Sales contribution by dress type</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-product-share"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Social Media Intelligence Hub -->
+        <section class="social-hub-section" aria-label="Social Media Performance">
+            <h2 style="font-size: 16px; font-weight: 600; margin-top: 10px; border-left: 3px solid var(--accent); padding-left: 10px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">Social Media Intelligence Hub</h2>
+            <div class="charts-grid" style="grid-template-columns: 1.2fr 1fr; min-height: 280px; align-items: stretch;">
+                
+                <!-- Social Stats Grid (Left Column of Hub) -->
+                <div class="social-grid" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                    <!-- Instagram Card -->
+                    <div class="social-card instagram" style="flex-grow: 1;">
+                        <div class="social-platform-label instagram">
+                            <span>📸</span> Instagram Analytics
+                        </div>
+                        <div class="social-stats-row" style="display: flex; justify-content: space-between; gap: 8px;">
+                            <div class="social-stat-group">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Likes</div>
+                                <span class="social-stat-val" id="val-ig-likes-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-ig-likes-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                            <div class="social-stat-group" style="text-align: right;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Comments</div>
+                                <span class="social-stat-val" id="val-ig-comments-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-ig-comments-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Twitter/X Card -->
+                    <div class="social-card twitter" style="flex-grow: 1;">
+                        <div class="social-platform-label twitter">
+                            <span>🐦</span> Twitter/X Activity
+                        </div>
+                        <div class="social-stats-row" style="display: flex; justify-content: space-between; gap: 8px;">
+                            <div class="social-stat-group">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Likes</div>
+                                <span class="social-stat-val" id="val-tw-likes-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-tw-likes-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                            <div class="social-stat-group" style="text-align: right;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Comments</div>
+                                <span class="social-stat-val" id="val-tw-comments-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-tw-comments-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Facebook Card -->
+                    <div class="social-card facebook" style="flex-grow: 1;">
+                        <div class="social-platform-label facebook">
+                            <span>👥</span> Facebook Engagement
+                        </div>
+                        <div class="social-stats-row" style="display: flex; justify-content: space-between; gap: 8px;">
+                            <div class="social-stat-group">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Likes</div>
+                                <span class="social-stat-val" id="val-fb-likes-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-fb-likes-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                            <div class="social-stat-group" style="text-align: right;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 2px;">Comments</div>
+                                <span class="social-stat-val" id="val-fb-comments-pos" style="font-size: 15px; color: var(--success); display: block;">🟢 0</span>
+                                <span class="social-stat-val" id="val-fb-comments-neg" style="font-size: 15px; color: var(--danger); display: block;">🔴 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Share Chart (Right Column of Hub) -->
+                <div class="chart-card" style="min-height: 250px;">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Cross-Platform Engagement</h3>
+                            <span class="chart-subtitle">Interactions spread across social channels</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chart-social-share"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Secondary Chart Section (Profitability Bar Comparison) -->
+        <section class="secondary-charts-row" aria-label="Category Analysis">
+            <div class="chart-card" style="min-height: 350px;">
+                <div class="chart-card-header">
+                    <div>
+                        <h3 id="bar-chart-title">Profit & Loss Comparison</h3>
+                        <span class="chart-subtitle" id="bar-chart-sub">Comparing bottom-line returns against expenses</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-profit-comparison"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Row: Financial Ledger + Social Media Live Feed -->
+        <div class="bottom-split-grid">
+            
+
+            <!-- Social Media Live Feed -->
+            <section class="social-feed-card" aria-label="Live Social Activity Feed">
+                <div class="social-feed-header">
+                    <div>
+                        <h3>Live Brand Feed & Feedback</h3>
+                        <span class="chart-subtitle">Real-time customer sentiment and social reviews</span>
+                    </div>
+                </div>
+                <div class="social-feed-list" id="social-feed-list">
+                    <!-- Dynamic social posts will be injected here -->
+                </div>
+            </section>
+            
+        </div>
+
+    </div>
+
+    <!-- Script references -->
+    <script src="database.js?v=50"></script>
+    <script src="app.js?v=50"></script>
+</body>
+</html>
